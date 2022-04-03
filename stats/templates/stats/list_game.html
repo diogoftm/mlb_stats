@@ -3,6 +3,7 @@
 {% block content %}
 
     <div id="games" class="row align-items-md-stretch row-cols-1 row-cols-md-2 g-4">
+
     {% for game in games %}
         {% if game.status == "In Progress" %}
             <div class="col">
@@ -12,7 +13,7 @@
                         <h3 class="card__time">{{game.home_score}} - {{game.away_score}}</h3>
                     </p>
                     <h6 class="card__apply">
-                        <a class="btn btn-outline-light" href="{% url 'add' game.game_id %}">Add Game</a>
+                        <a class="btn  btn-outline-light" >Add Game</i></a>
                     </h6>
                     <h6 class="card__inning">{{game.inning}}th</h6>
                 </div>
@@ -21,9 +22,9 @@
             <div class="col">
                 <div class="card card-1">
                     <h2 class="card__team">{{game.home_team}} &nbsp; {{game.away_team}}</h2>
-
-                    <h3 style="padding-bottom: 45px;" class="card__time">{{game.time }}</h3>
-
+                    <p>
+                        <h3 style="padding-bottom: 45px;" class="card__time">{{game.time }}</h3>
+                    </p>
                 </div>
             </div>
         {% else %}
@@ -34,7 +35,7 @@
                         <h3 class="card__time">{{game.home_score}} - {{game.away_score}}</h3>
                     </p>
                     <h6 class="card__apply">
-                        <a class="btn btn-outline-light" href="{% url 'add' game.game_id %}">Add Game</a>
+                        <a class="btn btn-outline-light" href="#">Add Game</i></a>
                     </h6>
                 </div>
             </div>
