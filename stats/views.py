@@ -1,5 +1,7 @@
 from django.shortcuts import render, redirect
 import json
+from .models import Game
+from .games_querys import Mlb
 
 
 def home(request):
@@ -9,7 +11,13 @@ def home(request):
 
 
 def stats(request):
-    return render(request,'stats/index.html')
+    games = Game.objects.filter(user_id=request.user.id)
+    games_info = []
+    for game in games:
+        if Mlb.game_has_ended(game.game_id):
+            games_info.append(Mlb.game_info(game.game_id))
+
+    return render(request,'stats/stats.html', {'title': 'Stats', 'games_added': games_info})
 
 
 def list_game(request, game_id=None):

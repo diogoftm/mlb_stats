@@ -25,12 +25,18 @@ class Mlb:
             f.close()
 
     @staticmethod
-    def game_link(id):
+    def game_info(id):
         info = statsapi.get('game_contextMetrics', {'gamePk':id})['game']
-        home_team = {'name': info['teams']['home']['team']['name'], 'record': "%s-%s".format(info['teams']['home']['team']['leagueRecord']['wins'], info['teams']['home']['team']['leagueRecord']['losses']), 'score': info['teams']['home']['score']}
-        home_team = {'name': info['teams']['away']['team']['name'], 'record': "%s-%s".format(info['teams']['away']['team']['leagueRecord']['wins'], info['teams']['away']['team']['leagueRecord']['losses']), 'score': info['teams']['away']['score']}
+        home_name = info['teams']['home']['team']['name']
+        home_score = info['teams']['home']['score']
+        away_name = info['teams']['away']['team']['name']
+        away_score = info['teams']['away']['score']
         date = info['officialDate']
-        venue = info['venue']['name']
-        series = info['seriesDescription']
+        return {'id': id ,'home':{'name': home_name, 'score': home_score}, 'away':{'name': away_name, 'score': away_score}, 'date': date}
+
+    @staticmethod
+    def game_has_ended(id):
+        info = statsapi.get('game_contextMetrics', {'gamePk': id})['game']
         status = info['status']['abstractGameState']
+        return status == 'Final'
 
