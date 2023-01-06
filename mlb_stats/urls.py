@@ -26,4 +26,7 @@ urlpatterns = [
     path('logout/', user_views.logout, name='logout'),
     path('profile/', user_views.profile, name='profile'),
     path('add/<int:game_id>', user_views.add, name='add'),
+    path('delete/<int:game_id>', user_views.delete, name='delete'),
+    path('list/<int:season>', user_views.list, name='list'),
+    path('find/<str:type>', user_views.find, name='find'),
 ]

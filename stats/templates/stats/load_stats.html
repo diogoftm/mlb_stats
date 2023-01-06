@@ -1,0 +1,47 @@
+{% extends "stats/base.html" %}
+{% block content %}
+
+<div id="success"></div>
+
+<div id="loading">
+    <center>
+        <lottie-player src="https://assets10.lottiefiles.com/private_files/lf30_70ooxacp.json" background="transparent"  speed="0.8"  style="width: 300px; height: 300px;"  loop  autoplay></lottie-player>
+    </center>
+</div>
+
+{% endblock content %}
+
+{% block script %}
+<script>
+    var replace_data = function(data){
+            document.getElementById('success').innerHTML += data
+            document.getElementById('loading').remove();
+        }
+
+    fetch('/list/{{season}}?load=1')
+        .then(response => response.json())
+        .then(data => {
+            replace_data(data.data);
+        });
+    
+        function deleteGame(id) {
+            var csrftoken = '{{ csrf_token }}';
+            if(confirm("Are you sure?")){
+                fetch('/delete/' + id, {
+                    method: 'POST',
+                    headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrftoken
+                    },
+                }).then(response => {
+                    if (response.status === 200) {
+                        document.getElementById("tr-"+id).remove();
+                    }
+                    })
+                    .catch(error => {
+                        
+                    });
+                }
+        }
+</script>
+{% endblock script %}

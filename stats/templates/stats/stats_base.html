@@ -1,0 +1,70 @@
+
+<div class="p-1 container">
+<form class="row g-3" action="/find/list" method="get">
+    <div class="col-auto">
+        <input class="form-control" name="season" id="season" type="number" min="2022" max="2099" step="1" value="{{season}}" />
+    </div>
+    <div class="col-auto">
+      <button type="submit" class="btn btn-outline-secondary mb-3">Find</button>
+    </div>
+</form>
+
+<div class="row overflow-auto row-cols-1 row-cols-md-1 g-0 pb-5" >
+    <div class="card text-bg-light mb-2 pb-5 overflow-auto" style="height:400px">
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">Home</th>
+                <th scope="col">Away</th>
+                <th scope="col">Score</th>
+                <th scope="col">Date</th>
+                <th scope="col"> </th>
+            </tr>
+        </thead>
+        <tbody>
+    {% for game in games_list %}
+            <tr id="tr-{{game.game_id}}">
+                <td>{{game.home__name}}</td>
+                <td>{{game.away__name}}</td>
+                <td>{{game.score_home}} - {{game.score_away}}</td>
+                <td>{{game.date}}</td>
+                <td>
+                    <a href="/game/{{game.game_id}}"><button class="btn btn-outline-success btn-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
+                            <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
+                        </svg>
+                    </button></a>
+                    <button class="btn btn-outline-danger btn-sm" onclick="deleteGame({{game.game_id}})">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+                            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                            <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+                        </svg>
+                    </button>
+                </td>
+            </tr>
+    {% endfor %}
+        </tbody>
+    </table>
+</div>
+</div>
+    <div class="row align-items-md-stretch row-cols-1 row-cols-md-3 g-4">
+        {% for stat in stats %}
+        <div class="col">
+            <div style="text-align: center;" class="card text-bg-light mb-2 pb-5 overflow-auto">
+                    <h5 class="card-title">{{stat.title}}</h5>
+                    {% if stat.type == "rank"%}
+                        {% for v1,v2 in stat.data %}
+                            {{ forloop.counter }} - {{v1}} ({{v2}})<br>
+                        {% endfor %}
+                    {% elif stat.type == "list" %}
+                        {% for v1,v2 in stat.data %}
+                            {{v1}} - {{v2}}<br>
+                        {% endfor %}
+                    {% else %}
+                        <h5>{{stat.data}}</h6>
+                    {% endif %}
+            </div>  
+        </div>  
+        {% endfor %}
+    </div>
+</div>

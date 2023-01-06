@@ -1,4 +1,6 @@
-from .games_querys import Mlb
+#import django
+#django.setup()
 
+#from .games_querys import Mlb
 
-Mlb.games_today_refresh()
+#Mlb.refresh_added_games()
