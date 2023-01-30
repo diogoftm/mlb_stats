@@ -3,7 +3,7 @@ import pytz
 import json
 from datetime import datetime
 from .utils import periodic_task
-from .models import Team
+from .models import Team, Game
 
 
 class Mlb:
@@ -27,18 +27,22 @@ class Mlb:
     @staticmethod
     @periodic_task(500)
     def refresh_added_games() -> None:
-        from .models import Game
         """
-        ! Refresh the status and some data of the unfinished games that here added.
+        ! Refresh the status and some data about the unfinished games that here added.
         """
-        games = Game.objects.get(ended=0)
+        games = Game.objects.filter(ended=0)
         for g in games:
             i = Mlb.game_info(g.game_id)
-            g.basic_info = json.dumps(i)
+            gci = Mlb.game_complete_info(g.game_id)
+            g.more_info = json.dumps(gci)
             g.ended = 1 if i['status']['statusCode']=='F' else 0
             g.score_home = i['teams']['home']['score']
             g.score_away = i['teams']['away']['score']
+            g.attendance = gci['gameData']['gameInfo']['attendance']
+            g.duration = gci['gameData']['gameInfo']['gameDurationMinutes']
+            g.basic_info = json.dumps(g)
             g.save()
+        
 
     @staticmethod
     def game_info(id : int, all : bool = False) -> dict:

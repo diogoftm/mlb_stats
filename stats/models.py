@@ -24,7 +24,7 @@ class Game(models.Model):
     series_type = models.TextField(default='Regular Season')
     duration = models.IntegerField(default=0) 
     win = models.IntegerField(default=0)
-    basic_info = models.TextField(default='{}')
+    more_info = models.TextField(default='{}')
     ended = models.IntegerField(default=0)
     date = models.CharField(max_length=20, null=True)
     season = models.IntegerField(default=0)

@@ -40,7 +40,7 @@ def add(request, game_id):
     gci = Mlb.game_complete_info(game_id)
     ht = Team.objects.get(name=g['teams']['home']['team']['name'])
     at = Team.objects.get(name=g['teams']['away']['team']['name'])
-    Game(game_id=game_id, user=request.user, basic_info=json.dumps(g), home=ht, away=at,
+    Game(game_id=game_id, user=request.user, more_info=json.dumps(gci), home=ht, away=at,
         score_home=g['teams']['home']['score'], score_away=g['teams']['away']['score'],
         win=0 if g['teams']['home']['isWinner'] else 1, ended=1 if g['status']['statusCode']=='F' else 0,
         home_sp=g['teams']['home']['probablePitcher']['fullName'], 
