@@ -1,8 +1,9 @@
 from .models import Game, Team
 from django.contrib.auth.models import User
 from django.db.models import Count
-from django.db.models import Q, Avg, Max, Min, Case, When, F, Sum
+from django.db.models import Q, Avg, Max, Min,Sum
 from collections import Counter
+import math
 
 
 import json
@@ -19,7 +20,7 @@ def basic_stats_bundle(user : User, season : int = None):
             {'title': "Most watched sp", 'type': "rank", 'data': most_watched_sp_stats(user, season=season)},
             {'title': "Most watched venue", 'type': "rank", 'data': most_frequent_venue_stats(user, season=season)},
             {'title': "Most wins", 'type': "rank", 'data': w_l['wins']},
-            {'title': "Most loses", 'type': "rank", 'data': w_l['loses']},
+            {'title': "Most loses", 'type': "rank", 'data': w_l['loses']}
             ]
 
 def most_watched_team_stats(user : User, season : int = None, depth : int = 3):
@@ -161,6 +162,25 @@ def teams_stats(user : User, season : int = None):
     
     return t_stats
 
+def stats_names():
+    return {'n_watched': ['GW', "Games Watched"], 'flyOuts': ['FO', "Fly Outs"],
+            'runs': ['R', 'Runs'], 'doubles': ['D', 'Doubles '], 'triples':['T', 'Triples'], 
+            'homeRuns':['HR', "Home Runs"], 'strikeOuts':['SO', 'Strike Outs'], 'baseOnBalls':['BB', 'Base on Balls'],
+            'intentionalWalks': ['IW', 'Intentional Walks'], 'hits': ['H', 'Hits'], 'hitByPitch': ['HBP', 'Hit By Pitch'],
+            'avg': ['AVG', 'Average'], 'atBats': ['AB', 'At Bats'], 'obp':['OBP', 'On Base Percentage'],
+            'slg': ['SLG', 'Slugging Percentage'], 'ops': ['OPS', 'On Base % + Slugging %'], 'caughtStealing':['CS', 'Cought Stealing'],
+            'stolenBases': ['SB', 'Stolen Bases'], 'stolenBasePercentage': ['SB%', 'Stolen Base Percentage'],
+            'groundIntoDoublePlay': ['GIDP', 'Ground Into Double Play'], 'groundIntoTriplePlay': ['GITP', 'Ground Into Triple Play'],
+            'plateAppearances': ['PA', 'Plate Appearances'], 'totalBases':['TB', 'Tatal Bases'], 'rbi':['RBI', 'Runs batted In'],
+            'leftOnBase': ['LOB', 'Left On Base'], 'sacBunts':['SacB', 'Sacrafice Bunts'], 'sacFlies':['SF', 'Sacrafice Flies'],
+            'catchersInterference':['CI', 'Catchers Interference'],
+            'pickoffs': ['PO', 'Pick Offs'], 'atBatsPerHomeRun': ['ABHR', 'At Bats per Home Run'], 'singles': ['S', 'Singles'],
+            'era': ['ERA', 'Earned Runs Average'], 'inningsPitched':['IP', 'Innings Pitched'],
+            'savingOpportunities': ['SOP', 'Saving Opportunities'], 'numberOfPitches':['NP', 'NUmber Of Pitches'],
+            'earnedRuns': ['ER', 'Earned Runs'], 'whip': ['WHIP', 'Walks Hits Per Inning Pitched'],
+            'battersFaced': ['BF', 'Batters Faced'], 'completeGames': ['CG', 'Complete Games'],
+            'errors': ['E', 'Errors'], 'chances': ['C', 'Chances']
+            }
 
 def __update_team_stats(team_name : str, team_stats : dict, t_stats : dict):
     if team_name not in t_stats:
@@ -173,17 +193,17 @@ def __update_team_stats(team_name : str, team_stats : dict, t_stats : dict):
         t_stats[team_name]['n_watched'] += 1
         for k in team_stats['batting']:
             if k == 'obp':
-                t_stats[team_name]['batting'][k] = (t_stats[team_name]['batting']['hits'] + t_stats[team_name]['batting']['baseOnBalls'] + t_stats[team_name]['batting']['hitByPitch']) / t_stats[team_name]['batting']['atBats']
+                t_stats[team_name]['batting'][k] = round((t_stats[team_name]['batting']['hits'] + t_stats[team_name]['batting']['baseOnBalls'] + t_stats[team_name]['batting']['hitByPitch']) / t_stats[team_name]['batting']['atBats'], 3)
             elif k == 'avg':
-                t_stats[team_name]['batting'][k] = t_stats[team_name]['batting']['hits'] / t_stats[team_name]['batting']['atBats']
+                t_stats[team_name]['batting'][k] = round(t_stats[team_name]['batting']['hits'] / t_stats[team_name]['batting']['atBats'], 3)
             elif k == 'ops':
-                t_stats[team_name]['batting'][k] = t_stats[team_name]['batting']['slg'] + t_stats[team_name]['batting']['obp']
+                t_stats[team_name]['batting'][k] = round(t_stats[team_name]['batting']['slg'] + t_stats[team_name]['batting']['obp'],3)
             elif k == 'slg':
-                t_stats[team_name]['batting'][k] = (2*t_stats[team_name]['batting']['doubles'] + 3*t_stats[team_name]['batting']['atBats'] + 4*t_stats[team_name]['batting']['homeRuns'] + t_stats[team_name]['batting']['singles']) / t_stats[team_name]['batting']['atBats']
+                t_stats[team_name]['batting'][k] = round((2*t_stats[team_name]['batting']['doubles'] + 3*t_stats[team_name]['batting']['triples'] + 4*t_stats[team_name]['batting']['homeRuns'] + t_stats[team_name]['batting']['singles']) / t_stats[team_name]['batting']['atBats'], 3)
             elif k == 'stolenBasePercentage':
-                t_stats[team_name]['batting'][k] = t_stats[team_name]['batting']['stolenBases'] / (t_stats[team_name]['batting']['caughtStealing'] + t_stats[team_name]['batting']['stolenBases']) if t_stats[team_name]['batting']['caughtStealing'] + t_stats[team_name]['batting']['stolenBases'] > 0 else '-'
+                t_stats[team_name]['batting'][k] = round(t_stats[team_name]['batting']['stolenBases'] / (t_stats[team_name]['batting']['caughtStealing'] + t_stats[team_name]['batting']['stolenBases']), 3) if t_stats[team_name]['batting']['caughtStealing'] + t_stats[team_name]['batting']['stolenBases'] > 0 else '-'
             elif k == 'atBatsPerHomeRun':
-                t_stats[team_name]['batting']['atBatsPerHomeRun'] = t_stats[team_name]['batting']['atBats'] / t_stats[team_name]['batting']['homeRuns'] if t_stats[team_name]['batting']['homeRuns']>0 else '-'
+                t_stats[team_name]['batting']['atBatsPerHomeRun'] = round(t_stats[team_name]['batting']['atBats'] / t_stats[team_name]['batting']['homeRuns'], 3) if t_stats[team_name]['batting']['homeRuns']>0 else '-'
             else:
                 t_stats[team_name]['batting'][k] += team_stats['batting'][k]
         t_stats[team_name]['batting']['singles'] = t_stats[team_name]['batting']['hits'] - t_stats[team_name]['batting']['doubles'] - t_stats[team_name]['batting']['triples'] - t_stats[team_name]['batting']['homeRuns']
@@ -191,33 +211,33 @@ def __update_team_stats(team_name : str, team_stats : dict, t_stats : dict):
 
         for k in team_stats['pitching']:
             if k == 'obp':
-                t_stats[team_name]['pitching'][k] = (t_stats[team_name]['pitching']['hits'] + t_stats[team_name]['pitching']['baseOnBalls'] + t_stats[team_name]['pitching']['hitByPitch']) / t_stats[team_name]['batting']['atBats']
+                t_stats[team_name]['pitching'][k] = round((t_stats[team_name]['pitching']['hits'] + t_stats[team_name]['pitching']['baseOnBalls'] + t_stats[team_name]['pitching']['hitByPitch']) / t_stats[team_name]['batting']['atBats'], 3)
             elif k == 'stolenBasePercentage':
-                t_stats[team_name]['pitching'][k] = t_stats[team_name]['pitching']['stolenBases'] / (t_stats[team_name]['pitching']['caughtStealing'] + t_stats[team_name]['pitching']['stolenBases']) if t_stats[team_name]['pitching']['caughtStealing'] + t_stats[team_name]['pitching']['stolenBases'] > 0 else '-'
+                t_stats[team_name]['pitching'][k] = round(t_stats[team_name]['pitching']['stolenBases'] / (t_stats[team_name]['pitching']['caughtStealing'] + t_stats[team_name]['pitching']['stolenBases']), 3) if t_stats[team_name]['pitching']['caughtStealing'] + t_stats[team_name]['pitching']['stolenBases'] > 0 else '-'
             elif k == 'era':
                 continue
             elif k == 'whip':
-                t_stats[team_name]['pitching'][k] = (t_stats[team_name]['pitching']['hits'] + t_stats[team_name]['pitching']['baseOnBalls'] ) / float(t_stats[team_name]['pitching']['inningsPitched'])
+                t_stats[team_name]['pitching'][k] = round((t_stats[team_name]['pitching']['hits'] + t_stats[team_name]['pitching']['baseOnBalls'] ) / float(t_stats[team_name]['pitching']['inningsPitched']), 3)
             elif k == 'strikePercentage':
-                t_stats[team_name]['pitching'][k] = t_stats[team_name]['pitching']['strikes'] / t_stats[team_name]['pitching']['pitchesThrown']
+                t_stats[team_name]['pitching'][k] = round(t_stats[team_name]['pitching']['strikes'] / t_stats[team_name]['pitching']['pitchesThrown'], 2)
             elif k == 'pitchesPerInning':
-                t_stats[team_name]['pitching'][k] = t_stats[team_name]['pitching']['pitchesThrown'] / t_stats[team_name]['pitching']['inningsPitched']
+                t_stats[team_name]['pitching'][k] = round(t_stats[team_name]['pitching']['pitchesThrown'] / t_stats[team_name]['pitching']['inningsPitched'], 1)
             elif k == 'runsScoredPer9':
-                t_stats[team_name]['pitching'][k] = t_stats[team_name]['pitching']['runs'] / t_stats[team_name]['pitching']['inningsPitched'] * 9
+                t_stats[team_name]['pitching'][k] = round(t_stats[team_name]['pitching']['runs'] / t_stats[team_name]['pitching']['inningsPitched'] * 9, 1)
             elif k == 'homeRunsPer9':
-                t_stats[team_name]['pitching'][k] = t_stats[team_name]['pitching']['homeRuns'] / t_stats[team_name]['pitching']['inningsPitched'] * 9
+                t_stats[team_name]['pitching'][k] = round(t_stats[team_name]['pitching']['homeRuns'] / t_stats[team_name]['pitching']['inningsPitched'] * 9, 2)
             elif k == 'inningsPitched':
                 t_stats[team_name]['pitching'][k] += float(team_stats['pitching'][k])
             elif k == 'groundOutsToAirouts':
-                t_stats[team_name]['pitching'][k] = t_stats[team_name]['pitching']['groundOuts'] / t_stats[team_name]['pitching']['airOuts'] if t_stats[team_name]['pitching']['airOuts'] > 0 else '-'
+                t_stats[team_name]['pitching'][k] = round(t_stats[team_name]['pitching']['groundOuts'] / t_stats[team_name]['pitching']['airOuts'], 2) if t_stats[team_name]['pitching']['airOuts'] > 0 else '-'
             else:
                 t_stats[team_name]['pitching'][k] += team_stats['pitching'][k]
         
-        t_stats[team_name]['pitching']['era'] = 9*t_stats[team_name]['pitching']['earnedRuns'] / t_stats[team_name]['pitching']['inningsPitched'] if t_stats[team_name]['pitching']['inningsPitched'] > 0 else '-'
+        t_stats[team_name]['pitching']['era'] = round(9*t_stats[team_name]['pitching']['earnedRuns'] / t_stats[team_name]['pitching']['inningsPitched'], 2) if t_stats[team_name]['pitching']['inningsPitched'] > 0 else '-'
 
 
         for k in team_stats['fielding']:
             if k == 'stolenBasePercentage':
-                t_stats[team_name]['fielding'][k] = t_stats[team_name]['fielding']['stolenBases'] / (t_stats[team_name]['fielding']['stolenBases'] + t_stats[team_name]['fielding']['caughtStealing']) if t_stats[team_name]['fielding']['stolenBases'] + t_stats[team_name]['fielding']['caughtStealing'] > 0 else '-'
+                t_stats[team_name]['fielding'][k] = round(t_stats[team_name]['fielding']['stolenBases'] / (t_stats[team_name]['fielding']['stolenBases'] + t_stats[team_name]['fielding']['caughtStealing']), 2) if t_stats[team_name]['fielding']['stolenBases'] + t_stats[team_name]['fielding']['caughtStealing'] > 0 else '-'
             else:
                 t_stats[team_name]['fielding'][k] += team_stats['fielding'][k]

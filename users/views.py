@@ -77,7 +77,9 @@ def list(request, season):
         return redirect('stats-home')
 
     if request.GET.get('load') == '1':
-        data = render_to_string('stats/stats_base.html', {'season': season, 'games_list':q, 'stats': stats.basic_stats_bundle(request.user, season=season)})
+        data = render_to_string('stats/stats_base.html', {'season': season, 'games_list':q, 'stats': stats.basic_stats_bundle(request.user, season=season), 
+                                                          'teams_stats': stats.teams_stats(request.user, season=season), 
+                                                          'stats_names': stats.stats_names()})
         return JsonResponse({'data':data})
     return render(request, 'stats/load_stats.html', {'title': 'stats', 'season': season})
 

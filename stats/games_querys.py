@@ -18,10 +18,13 @@ class Mlb:
         games = statsapi.schedule(date)
         g = []
         for i in games:
-            g.append({'game_id': i['game_id'], 'home_team': Team.objects.filter(team_id=i["home_id"]).first().ac,
-                      'home_score': i['home_score'], 'away_team': Team.objects.filter(team_id=i["away_id"]).first().ac,
-                      'away_score': i['away_score'], 'time': pytz.timezone('UTC').localize(datetime.strptime(i['game_datetime'], '%Y-%m-%dT%H:%M:%SZ')).astimezone(pytz.timezone('Europe/London')).strftime("%H:%M"),
-                      'inning': "{} {}".format(i['inning_state'], i['current_inning']), 'status': i['status']})
+            try:
+                g.append({'game_id': i['game_id'], 'home_team': Team.objects.filter(team_id=i["home_id"]).first().ac,
+                        'home_score': i['home_score'], 'away_team': Team.objects.filter(team_id=i["away_id"]).first().ac,
+                        'away_score': i['away_score'], 'time': pytz.timezone('UTC').localize(datetime.strptime(i['game_datetime'], '%Y-%m-%dT%H:%M:%SZ')).astimezone(pytz.timezone('Europe/London')).strftime("%H:%M"),
+                        'inning': "{} {}".format(i['inning_state'], i['current_inning']), 'status': i['status']})
+            except AttributeError: # if team for some reason is not from mlb
+                continue
         return g
 
     @staticmethod

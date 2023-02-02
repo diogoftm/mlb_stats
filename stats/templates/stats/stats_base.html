@@ -1,4 +1,4 @@
-
+{% load tags %}
 <div class="p-1 container">
 <form class="row g-3" action="/find/list" method="get">
     <div class="col-auto">
@@ -9,16 +9,17 @@
     </div>
 </form>
 
-<div class="row overflow-auto row-cols-1 row-cols-md-1 g-0 pb-5" >
-    <div class="card text-bg-light mb-2 pb-5 overflow-auto" style="height:400px">
-    <table class="table">
+<div class="row g-0 pb-5" >
+    <div class="card text-bg-light" style="height:450px">
+        <div class="overflow-auto" style="height:400px">
+    <table class="table table-striped" >
         <thead>
             <tr>
-                <th scope="col">Home</th>
-                <th scope="col">Away</th>
-                <th scope="col">Score</th>
-                <th scope="col">Date</th>
-                <th scope="col"> </th>
+                <th scope="col" class="bg-light-subtle">Home</th>
+                <th scope="col" class="bg-light-subtle">Away</th>
+                <th scope="col" class="bg-light-subtle">Score</th>
+                <th scope="col" class="bg-light-subtle">Date</th>
+                <th scope="col" class="bg-light-subtle"> </th>
             </tr>
         </thead>
         <tbody>
@@ -47,24 +48,142 @@
     </table>
 </div>
 </div>
-    <div class="row align-items-md-stretch row-cols-1 row-cols-md-3 g-4">
-        {% for stat in stats %}
-        <div class="col">
-            <div style="text-align: center;" class="card text-bg-light mb-2 pb-5 overflow-auto">
-                    <h5 class="card-title">{{stat.title}}</h5>
-                    {% if stat.type == "rank"%}
-                        {% for v1,v2 in stat.data %}
-                            {{ forloop.counter }} - {{v1}} ({{v2}})<br>
+</div>
+
+    <nav>
+        <div class="nav nav-tabs justify-content-center" id="nav-tab" role="tablist">
+        <a class="nav-link active" id="nav-home-tab" data-bs-toggle="tab" href="#nav-general" role="tab" aria-controls="nav-general" aria-selected="true">General</a>
+        <a class="nav-link" id="nav-profile-tab" data-bs-toggle="tab" href="#nav-teams" role="tab" aria-controls="nav-teams" aria-selected="false">Teams</a>
+        </div>
+    </nav>
+
+    <div class="tab-content overflow-auto" id="nav-tabContent">
+        <div class="tab-pane fade show active" id="nav-general" role="tabpanel" aria-labelledby="nav-general-tab">
+            <div class="row align-items-md-stretch row-cols-1 row-cols-md-3 g-4 pt-5">
+                {% for stat in stats %}
+                <div class="col">
+                    <div style="text-align: center;" class="card text-bg-light mb-2 pb-5 overflow-auto">
+                            <h5 class="card-title">{{stat.title}}</h5>
+                            {% if stat.type == "rank"%}
+                                {% for v1,v2 in stat.data %}
+                                    {{ forloop.counter }} - {{v1}} ({{v2}})<br>
+                                {% endfor %}
+                            {% elif stat.type == "list" %}
+                                {% for v1,v2 in stat.data %}
+                                    {{v1}} - {{v2}}<br>
+                                {% endfor %}
+                            {% else %}
+                                <h5>{{stat.data}}</h6>
+                            {% endif %}
+                    </div>  
+                </div>  
+                {% endfor %}
+            </div>
+        </div>
+        <div class="tab-pane fade" id="nav-teams" role="tabpanel" aria-labelledby="nav-teams-tab">
+            <div class="row g-0 pb-5" >
+            <h4 class="text-center pt-5">Batting</h4>
+            <div class="card text-bg-light" style="height:850px">
+            
+            <div class="table-scroll bg-light-subtle" style="height:800px">
+            <table class="table table-striped table-bordered" >
+                <thead>
+                    <tr>
+                        <th scope="col" class="fixed-side table-light" style="z-index: 5;">Team</th>
+                    {% for team_name, stats in teams_stats.items %}
+                        {% if forloop.counter == 1 %}
+                            {% for stat in stats.batting %}
+                                
+                            <th scope="col" class="bg-light-subtle" title="{{stats_names|get_item_second:stat}}" >{{stats_names|get_item_first:stat}}</th>
+                                
+                            {% endfor %}
+                        {% endif %}
+                    {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for team_name, stats in teams_stats.items %}
+                        <tr>
+                            <td class="fixed-side table-light" style="z-index: 4;">{{team_name}}</td>
+                            {% for stat, value in stats.batting.items %}
+                            <td>{{value}}</td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+            </table>
+        </div>
+        </div>
+            </div> 
+                <div class="row g-0 pb-5" >
+                <h4 class="text-center pt-5">Pitching</h4>
+                <div class="card text-bg-light" style="height:850px">
+                
+                <div class="table-scroll bg-light-subtle" style="height:800px">
+                <table class="table table-striped table-bordered" >
+                    <thead>
+                        <tr>
+                            <th scope="col" class="fixed-side table-light" style="z-index: 5;">Team</th>
+                        {% for team_name, stats in teams_stats.items %}
+                            {% if forloop.counter == 1 %}
+                                {% for stat in stats.pitching %}
+                                {% if stats_names|get_item_second:stat and stat != "doubles" and stat != "triples" %}
+                                <th scope="col" class="bg-light-subtle" title="{{stats_names|get_item_second:stat}}" >{{stats_names|get_item_first:stat}}</th>
+                                {% endif %}
+                                {% endfor %}
+                            {% endif %}
                         {% endfor %}
-                    {% elif stat.type == "list" %}
-                        {% for v1,v2 in stat.data %}
-                            {{v1}} - {{v2}}<br>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for team_name, stats in teams_stats.items %}
+                            <tr>
+                                <td class="fixed-side table-light" style="z-index: 4;">{{team_name}}</td>
+                                {% for stat, value in stats.pitching.items %}
+                                    {% if stats_names|get_item_second:stat and stat != "doubles" and stat != "triples" %}
+                                    <td>{{value}}</td>
+                                    {% endif %}
+                                {% endfor %}
+                            </tr>
                         {% endfor %}
-                    {% else %}
-                        <h5>{{stat.data}}</h6>
+                        </tbody>
+                </table>
+    </div>
+    
+    </div>
+    <div class="row g-0 pb-5" >
+        <h4 class="text-center pt-5">Fielding</h4>
+        <div class="card text-bg-light" style="height:850px">
+        
+        <div class="table-scroll bg-light-subtle" style="height:800px">
+        <table class="table table-striped table-bordered" >
+            <thead>
+                <tr>
+                    <th scope="col" class="table-light">Team</th>
+                {% for team_name, stats in teams_stats.items %}
+                    {% if forloop.counter == 1 %}
+                        {% for stat in stats.fielding %}
+                        {% if stats_names|get_item_second:stat  %}
+                        <th scope="col" class="bg-light-subtle" title="{{stats_names|get_item_second:stat}}" >{{stats_names|get_item_first:stat}}</th>
+                        {% endif %}
+                        {% endfor %}
                     {% endif %}
-            </div>  
-        </div>  
-        {% endfor %}
+                {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for team_name, stats in teams_stats.items %}
+                    <tr>
+                        <td class="table-light" style="z-index: 4;">{{team_name}}</td>
+                        {% for stat, value in stats.fielding.items %}
+                            {% if stats_names|get_item_second:stat %}
+                            <td>{{value}}</td>
+                            {% endif %}
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+                </tbody>
+        </table>
+        </div>        
     </div>
 </div>

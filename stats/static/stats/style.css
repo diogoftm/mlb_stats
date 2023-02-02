@@ -108,3 +108,19 @@
   #loadingDiv{
       margin: 50px;
   }
+
+  th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    
+  }
+
+  .fixed-side {
+    position: sticky;
+    left: 0;
+  }
+  .table-scroll {
+    width:100%;
+    overflow:auto;
+  }
