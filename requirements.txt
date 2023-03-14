@@ -1,3 +1,5 @@
 Django==4.1.4
 MLB_StatsAPI==1.6
 pytz==2022.1
+django-crispy-forms==2.0
+crispy-bootstrap5==0.7

@@ -30,3 +30,7 @@ urlpatterns = [
     path('list/<int:season>', user_views.list, name='list'),
     path('find/<str:type>', user_views.find, name='find'),
 ]
+
+from stats.games_querys import Mlb
+
+Mlb.refresh_added_games()

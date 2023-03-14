@@ -8,11 +8,11 @@ from datetime import datetime
 
 
 def home(request):
-    games = Mlb.games_at_date(datetime.today().strftime('%m/%d/%y'))
+    games = Mlb.games_at_date(datetime.today().strftime('%m/%d/%Y'))
     if not games:
         return render(request, 'stats/index.html', {'title': 'Home', 
             'status': '<lottie-player src="https://assets1.lottiefiles.com/packages/lf20_19m6hu.json" background="transparent"  speed="0.5"  style="width: 300px; height: 300px;"  loop  autoplay></lottie-player> <h5 style="opacity: 0.5;">No games today</h5>'})
-    return JsonResponse(data={'success': 1})
+    return render(request, 'stats/index.html', {'games':games})
     
 
 def games_at_date(request, date):

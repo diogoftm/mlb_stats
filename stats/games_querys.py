@@ -14,7 +14,7 @@ class Mlb:
         @param date : date formated as string like '%m/%d/%Y'
         @return list of games 
         """
-        
+        print(date)
         games = statsapi.schedule(date)
         g = []
         for i in games:
@@ -33,6 +33,7 @@ class Mlb:
         """
         ! Refresh the status and some data about the unfinished games that here added.
         """
+        print("aqui")
         games = Game.objects.filter(ended=0)
         for g in games:
             i = Mlb.game_info(g.game_id)

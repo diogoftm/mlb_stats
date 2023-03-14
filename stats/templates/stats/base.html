@@ -70,10 +70,11 @@
                 {% endfor %}
             {% endif %}
             {% block content %}{% endblock %}
-            
+            <center> <div id="status">
               {% if status %}
-                <center> <div id="status">{{status | safe}} </div></center>
+                {{status | safe}}
               {% endif %}
+            </div></center>
             </div>
         </main>
     
