@@ -28,7 +28,7 @@ class Mlb:
         return g
 
     @staticmethod
-    @periodic_task(500)
+    @periodic_task(10)
     def refresh_added_games() -> None:
         """
         ! Refresh the status and some data about the unfinished games that here added.
@@ -36,15 +36,17 @@ class Mlb:
         print("aqui")
         games = Game.objects.filter(ended=0)
         for g in games:
-            i = Mlb.game_info(g.game_id)
+            i = Mlb.game_info(g.game_id, all=True)
             gci = Mlb.game_complete_info(g.game_id)
             g.more_info = json.dumps(gci)
             g.ended = 1 if i['status']['statusCode']=='F' else 0
             g.score_home = i['teams']['home']['score']
             g.score_away = i['teams']['away']['score']
-            g.attendance = gci['gameData']['gameInfo']['attendance']
-            g.duration = gci['gameData']['gameInfo']['gameDurationMinutes']
-            g.basic_info = json.dumps(g)
+            if i['status']['statusCode']=='F':
+                g.attendance = gci['gameData']['gameInfo']['attendance']
+                g.duration = gci['gameData']['gameInfo']['gameDurationMinutes']
+                g.win = 0 if i['teams']['home']['isWinner'] else 1
+                g.basic_info = json.dumps(i)
             g.save()
         
 

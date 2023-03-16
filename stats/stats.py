@@ -3,7 +3,6 @@ from django.contrib.auth.models import User
 from django.db.models import Count
 from django.db.models import Q, Avg, Max, Min,Sum
 from collections import Counter
-import math
 
 
 import json
@@ -105,8 +104,10 @@ def time_duration_stats(user : User, season : int = None) -> list:
     """
     return a dict with the average, min and max game duration
     """
-    if season: q = Game.objects.filter(Q(user=user) and Q(season=season)).aggregate(Avg('duration'), Max('duration'), Min('duration'))
-    q = Game.objects.filter(Q(user=user)).aggregate(Avg('duration'), Max('duration'), Min('duration'))
+    if season: 
+        q = Game.objects.filter(Q(user=user, ended=1, season=season)).aggregate(Avg('duration'), Max('duration'), Min('duration'))
+    else:
+        q = Game.objects.filter(Q(user=user, ended=1)).aggregate(Avg('duration'), Max('duration'), Min('duration'))
     return [('avg',int(q['duration__avg'])), ('max',q['duration__max']), ('min', q['duration__min'])]
 
 def max_innings_duration_stats(user : User, season : int = None):
@@ -115,8 +116,8 @@ def max_innings_duration_stats(user : User, season : int = None):
     return Game.objects.filter(user=user).aggregate(Max('innings'))
 
 def attendance_stats(user : User, season : int = None, team : Team = None):
-    if season: q = Game.objects.filter(user=user, season=season).aggregate(Avg('attendance'), Max('attendance'), Min('attendance'))
-    q = Game.objects.filter(user=user).aggregate(Avg('attendance'), Max('attendance'), Min('attendance'))
+    if season: q = Game.objects.filter(user=user, season=season, ended=1).aggregate(Avg('attendance'), Max('attendance'), Min('attendance'))
+    else: q = Game.objects.filter(user=user, ended=1).aggregate(Avg('attendance'), Max('attendance'), Min('attendance'))
     return [('avg',int(q['attendance__avg'])), ('max',q['attendance__max']), ('min', q['attendance__min'])]
 
 def dayNight_stats(user : User, season : int = None):
@@ -126,7 +127,8 @@ def dayNight_stats(user : User, season : int = None):
             'night': Game.objects.filter(user=user,dayNight='night').count()}
 
 def win_loss_stats(user : User, season : int = None, depth : int = 3):
-    games = Game.objects.filter(user=user, season=season, ended=1).all()
+    if season: games = Game.objects.filter(user=user, season=season, ended=1).all()
+    else: games = Game.objects.filter(user=user, ended=1).all()
     q_w = {}
     q_l = {}
     for game in games:
@@ -158,7 +160,7 @@ def teams_stats(user : User, season : int = None):
     for game in games:
         t = json.loads(game.more_info)['liveData']['boxscore']['teams']
         __update_team_stats(game.home.name, t['home']['teamStats'], t_stats)
-        __update_team_stats(game.home.name, t['away']['teamStats'], t_stats)
+        __update_team_stats(game.away.name, t['away']['teamStats'], t_stats)
     
     return t_stats
 

@@ -34,7 +34,7 @@
 
                 </div>
             </div>
-        {% else %}
+        {% elif game.status == "Final" or game.status == "Final: Tied"%}
             <div class="col">
                 <div class="card card-1">
                     <h2 class="card__team">{{game.home_team}} &nbsp; {{game.away_team}}</h2>
@@ -45,9 +45,18 @@
                         <a class="btn btn-outline-light" href="{% url 'add' game.game_id %}">
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
                                 <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
-                            </svg>
+                              </svg>
                         </a>
                     </h6>
+                </div>
+            </div>
+        {% else %}
+            <div class="col">
+                <div class="card card-1" style="background: radial-gradient(#eb3838, #fc5656);">
+                    <h2 class="card__team">{{game.home_team}} &nbsp; {{game.away_team}}</h2>
+                    <p>
+                        <h3 class="card__time" style="padding-bottom: 45px;">{{game.status}}</h3>
+                    </p>
                 </div>
             </div>
         {% endif %}
@@ -72,7 +81,7 @@
             });
         
     }
-
+    
     addEventListener("load", (event) => {
         document.getElementById('date').valueAsDate = new Date();
     });

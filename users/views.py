@@ -40,14 +40,23 @@ def add(request, game_id):
     gci = Mlb.game_complete_info(game_id)
     ht = Team.objects.get(name=g['teams']['home']['team']['name'])
     at = Team.objects.get(name=g['teams']['away']['team']['name'])
-    Game(game_id=game_id, user=request.user, more_info=json.dumps(gci), home=ht, away=at,
-        score_home=g['teams']['home']['score'], score_away=g['teams']['away']['score'],
-        win=0 if g['teams']['home']['isWinner'] else 1, ended=1 if g['status']['statusCode']=='F' else 0,
-        home_sp=g['teams']['home']['probablePitcher']['fullName'], 
-        away_sp=g['teams']['away']['probablePitcher']['fullName'], innings=g['scheduledInnings'], dayNight=g['dayNight'],
-        series_type=g['seriesDescription'], venue=g['venue']['name'],
-        attendance= gci['gameData']['gameInfo']['attendance'], duration=gci['gameData']['gameInfo']['gameDurationMinutes'],
-        date=pytz.timezone('UTC').localize(datetime.strptime(g['gameDate'], '%Y-%m-%dT%H:%M:%SZ')).astimezone(pytz.timezone('Europe/London')).strftime("%m/%d/%YT%H:%M"), season=g['season'], ).save()
+    if g['status']['statusCode']=='F':
+        Game(game_id=game_id, user=request.user, more_info=json.dumps(gci), home=ht, away=at,
+            score_home=g['teams']['home']['score'], score_away=g['teams']['away']['score'],
+            win=0 if g['teams']['home']['isWinner'] else 1, ended=1 if g['status']['statusCode']=='F' else 0,
+            home_sp=g['teams']['home']['probablePitcher']['fullName'], 
+            away_sp=g['teams']['away']['probablePitcher']['fullName'], innings=g['scheduledInnings'], dayNight=g['dayNight'],
+            series_type=g['seriesDescription'], venue=g['venue']['name'],
+            attendance= gci['gameData']['gameInfo']['attendance'], duration=gci['gameData']['gameInfo']['gameDurationMinutes'],
+            date=pytz.timezone('UTC').localize(datetime.strptime(g['gameDate'], '%Y-%m-%dT%H:%M:%SZ')).astimezone(pytz.timezone('Europe/London')).strftime("%m/%d/%YT%H:%M"), season=g['season'], ).save()
+    else:
+        Game(game_id=game_id, user=request.user, more_info=json.dumps(gci), home=ht, away=at,
+            score_home=g['teams']['home']['score'], score_away=g['teams']['away']['score'],
+            ended=1 if g['status']['statusCode']=='F' else 0,
+            home_sp=g['teams']['home']['probablePitcher']['fullName'], 
+            away_sp=g['teams']['away']['probablePitcher']['fullName'], innings=g['scheduledInnings'], dayNight=g['dayNight'],
+            series_type=g['seriesDescription'], venue=g['venue']['name'],
+            date=pytz.timezone('UTC').localize(datetime.strptime(g['gameDate'], '%Y-%m-%dT%H:%M:%SZ')).astimezone(pytz.timezone('Europe/London')).strftime("%m/%d/%YT%H:%M"), season=g['season'], ).save()
     messages.success(request, 'Jogo adicionado')
     return redirect('stats-home')
 
