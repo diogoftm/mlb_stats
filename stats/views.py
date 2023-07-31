@@ -1,9 +1,8 @@
+from .games_querys import Mlb
+
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.template.loader import render_to_string
-import json
-from .models import Game
-from .games_querys import Mlb
 from datetime import datetime
 
 

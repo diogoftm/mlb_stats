@@ -1,25 +1,27 @@
-from .models import Game, Team
+from .models import Game, Team, Stats
+
 from django.contrib.auth.models import User
 from django.db.models import Count
 from django.db.models import Q, Avg, Max, Min,Sum
 from collections import Counter
-
-
 import json
 
 
 def basic_stats_bundle(user : User, season : int = None):
-    w_l = win_loss_stats(user, season=season)
-    return [{'title': "Nº games", 'type': "single", 'data': n_games_watched_stats(user, season=season)},
-            {'title': "Runs", 'type': "single", 'data': n_runs_stats(user, season=season)},
-            {'title': "Runs average", 'type': "list", 'data': avg_runs_stats(user, season=season)},
-            {'title': "Attendance", 'type': "list", 'data': attendance_stats(user, season=season)},
-            {'title': "Duration (minutes)", 'type': "list", 'data': time_duration_stats(user, season=season)},
-            {'title': "Most watched teams", 'type': "rank", 'data': most_watched_team_stats(user, season=season)},
-            {'title': "Most watched sp", 'type': "rank", 'data': most_watched_sp_stats(user, season=season)},
-            {'title': "Most watched venue", 'type': "rank", 'data': most_frequent_venue_stats(user, season=season)},
-            {'title': "Most wins", 'type': "rank", 'data': w_l['wins']},
-            {'title': "Most loses", 'type': "rank", 'data': w_l['loses']}
+    user_season_stats = Stats.objects.filter(user=user, season=season)[0]
+    return [{'title': "Nº games", 'type': "single", 'data': user_season_stats.n_games},
+            {'title': "Runs", 'type': "single", 'data': user_season_stats.runs},
+            {'title': "Runs average", 'type': "list", 'data': 
+             [('combined', round(user_season_stats.runs_home_avg + user_season_stats.runs_away_avg,2)), ('home',user_season_stats.runs_home_avg), ('away', user_season_stats.runs_away_avg)]},
+            {'title': "Attendance", 'type': "list", 'data': 
+             [('avg',user_season_stats.attendance_avg), ('max',user_season_stats.attendance_max), ('min', user_season_stats.attendance_min)]},
+            {'title': "Duration (minutes)", 'type': "list", 'data': 
+             [('avg',user_season_stats.duration_avg), ('max',user_season_stats.duration_max), ('min', user_season_stats.duration_min)]},
+            {'title': "Most watched teams", 'type': "rank", 'data': json.loads(user_season_stats.watched_teams_rank)},
+            {'title': "Most watched sp", 'type': "rank", 'data': json.loads(user_season_stats.sp_rank)},
+            {'title': "Most watched venue", 'type': "rank", 'data': json.loads(user_season_stats.venue_rank)},
+            {'title': "Most wins", 'type': "rank", 'data': json.loads(user_season_stats.teams_wins_rank)},
+            {'title': "Most loses", 'type': "rank", 'data': json.loads(user_season_stats.teams_losses_rank)}
             ]
 
 def most_watched_team_stats(user : User, season : int = None, depth : int = 3):
@@ -83,11 +85,7 @@ def avg_runs_stats(user : User, season : int = None, team : Team = None):
         q = Game.objects.filter(user=user, season=season).aggregate(Avg('score_home'), Avg('score_away'))
     else:
         q = Game.objects.filter(user=user).aggregate(Avg('score_home'), Avg('score_away'))
-    response = []
-    response.append(('combined', round((q['score_home__avg'] + q['score_away__avg']), 2)))
-    response.append(('home', round(q['score_home__avg'], 2)))
-    response.append(('away', round(q['score_away__avg'], 2)))
-    return response
+    return [('home', round(q['score_home__avg'], 2)), ('away', round(q['score_away__avg'], 2))]
 
 def n_runs_stats(user : User, season : int = None):
     if season:
@@ -149,9 +147,9 @@ def win_loss_stats(user : User, season : int = None, depth : int = 3):
 
 def teams_stats(user : User, season : int = None):
     """
-    returns batting stats for all watched teams
-    'team_name':{'n_watched': 10, }
+    returns batting, pitching and fielding stats for all teams
     """
+    #return None
     if season: games = Game.objects.filter(user=user, season=season).all()
     else: games = Game.objects.filter(user=user).all()
     
@@ -165,7 +163,7 @@ def teams_stats(user : User, season : int = None):
     return t_stats
 
 def stats_names():
-    return {'n_watched': ['GW', "Games Watched"], 'flyOuts': ['FO', "Fly Outs"],
+    return {'n_watched': ['GW', 'Games Watched'], 'flyOuts': ['FO', 'Fly Outs'], 'groundOuts': ['GO', 'Ground Outs'],
             'runs': ['R', 'Runs'], 'doubles': ['D', 'Doubles '], 'triples':['T', 'Triples'], 
             'homeRuns':['HR', "Home Runs"], 'strikeOuts':['SO', 'Strike Outs'], 'baseOnBalls':['BB', 'Base on Balls'],
             'intentionalWalks': ['IW', 'Intentional Walks'], 'hits': ['H', 'Hits'], 'hitByPitch': ['HBP', 'Hit By Pitch'],

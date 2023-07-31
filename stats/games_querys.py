@@ -4,7 +4,7 @@ import json
 from datetime import datetime
 from .utils import periodic_task
 from .models import Team, Game
-
+from .utils import create_user_stats
 
 class Mlb:
     @staticmethod
@@ -33,7 +33,6 @@ class Mlb:
         """
         ! Refresh the status and some data about the unfinished games that here added.
         """
-        print("aqui")
         games = Game.objects.filter(ended=0)
         for g in games:
             i = Mlb.game_info(g.game_id, all=True)
@@ -48,6 +47,7 @@ class Mlb:
                 g.win = 0 if i['teams']['home']['isWinner'] else 1
                 g.basic_info = json.dumps(i)
             g.save()
+            create_user_stats(g.user, g.season)
         
 
     @staticmethod

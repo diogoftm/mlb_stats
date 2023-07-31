@@ -1,16 +1,20 @@
+from .forms import UserRegisterForm
+from stats.models import Game, Team, Stats
+from stats.games_querys import Mlb
+from stats.utils import create_user_stats
+import stats.stats as stats
+
 from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponse
 from django.contrib.auth import logout as django_logout
-from .forms import UserRegisterForm
-from stats.models import Game, Team
-from stats.games_querys import Mlb
 import json
 import pytz
 from datetime import datetime
-import stats.stats as stats
+from threading import Thread
+
 
 def register(request):
     if request.method == 'POST':
@@ -36,12 +40,18 @@ def logout(request, **kwargs):
 
 @login_required
 def add(request, game_id):
+    thread1 = Thread(target=__add_game, args=(game_id, request.user), daemon=True)
+    thread1.start()
+    messages.success(request, 'Jogo adicionado')
+    return redirect('stats-home')
+
+def __add_game(game_id, user):
     g = Mlb.game_info(game_id, all=True)
     gci = Mlb.game_complete_info(game_id)
     ht = Team.objects.get(name=g['teams']['home']['team']['name'])
     at = Team.objects.get(name=g['teams']['away']['team']['name'])
     if g['status']['statusCode']=='F':
-        Game(game_id=game_id, user=request.user, more_info=json.dumps(gci), home=ht, away=at,
+        Game(game_id=game_id, user=user, more_info=json.dumps(gci), home=ht, away=at,
             score_home=g['teams']['home']['score'], score_away=g['teams']['away']['score'],
             win=0 if g['teams']['home']['isWinner'] else 1, ended=1 if g['status']['statusCode']=='F' else 0,
             home_sp=g['teams']['home']['probablePitcher']['fullName'], 
@@ -50,21 +60,21 @@ def add(request, game_id):
             attendance= gci['gameData']['gameInfo']['attendance'], duration=gci['gameData']['gameInfo']['gameDurationMinutes'],
             date=pytz.timezone('UTC').localize(datetime.strptime(g['gameDate'], '%Y-%m-%dT%H:%M:%SZ')).astimezone(pytz.timezone('Europe/London')).strftime("%m/%d/%YT%H:%M"), season=g['season'], ).save()
     else:
-        Game(game_id=game_id, user=request.user, more_info=json.dumps(gci), home=ht, away=at,
+        Game(game_id=game_id, user=user, more_info=json.dumps(gci), home=ht, away=at,
             score_home=g['teams']['home']['score'], score_away=g['teams']['away']['score'],
             ended=1 if g['status']['statusCode']=='F' else 0,
             home_sp=g['teams']['home']['probablePitcher']['fullName'], 
             away_sp=g['teams']['away']['probablePitcher']['fullName'], innings=g['scheduledInnings'], dayNight=g['dayNight'],
             series_type=g['seriesDescription'], venue=g['venue']['name'],
             date=pytz.timezone('UTC').localize(datetime.strptime(g['gameDate'], '%Y-%m-%dT%H:%M:%SZ')).astimezone(pytz.timezone('Europe/London')).strftime("%m/%d/%YT%H:%M"), season=g['season'], ).save()
-    messages.success(request, 'Jogo adicionado')
-    return redirect('stats-home')
+    create_user_stats(user, g['season'])
 
 @login_required
 def delete(request, game_id):
     game = Game.objects.filter(user=request.user, game_id=game_id).first()
     if game: 
         game.delete()
+        create_user_stats(request.user, game.season)
         return HttpResponse(status=200)
     return HttpResponse(status=400) #game does not exist
 
@@ -87,7 +97,7 @@ def list(request, season):
 
     if request.GET.get('load') == '1':
         data = render_to_string('stats/stats_base.html', {'season': season, 'games_list':q, 'stats': stats.basic_stats_bundle(request.user, season=season), 
-                                                          'teams_stats': stats.teams_stats(request.user, season=season), 
+                                                          'teams_stats': json.loads(Stats.objects.get(user=request.user, season=season).teams_stats), 
                                                           'stats_names': stats.stats_names()})
         return JsonResponse({'data':data})
     return render(request, 'stats/load_stats.html', {'title': 'stats', 'season': season})

@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+
 class Team(models.Model):
     team_id = models.IntegerField(null=True)
     name = models.TextField()
@@ -30,6 +31,22 @@ class Game(models.Model):
     season = models.IntegerField(default=0)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
-    
-
-
+class Stats(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    season = models.IntegerField()
+    n_games = models.IntegerField()
+    runs = models.IntegerField()
+    runs_home_avg = models.FloatField()
+    runs_away_avg = models.FloatField()
+    attendance_max = models.IntegerField()
+    attendance_min = models.IntegerField()
+    attendance_avg = models.IntegerField()
+    duration_min = models.IntegerField()
+    duration_max = models.IntegerField()
+    duration_avg = models.IntegerField()
+    watched_teams_rank = models.TextField(default='')
+    teams_wins_rank = models.TextField(default='')
+    teams_losses_rank = models.TextField(default='')
+    venue_rank = models.TextField(default='')
+    sp_rank = models.TextField(default='')
+    teams_stats = models.TextField(default='')
