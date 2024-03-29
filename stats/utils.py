@@ -55,7 +55,7 @@ def create_user_stats(user : User, season : int):
             teams_losses_rank=json.dumps(stats.win_loss_stats(user, season=season)['loses']),
             venue_rank=json.dumps(stats.most_frequent_venue_stats(user, season=season)),
             sp_rank=json.dumps(stats.most_watched_sp_stats(user, season=season)),
-            teams_stats=stats.teams_stats(user, season=season)).save()
+            teams_stats=json.dumps(stats.teams_stats(user, season=season))).save()
     else:
         Stats.objects.filter(user=user, season=season).update(
             n_games=stats.n_games_watched_stats(user, season=season),
